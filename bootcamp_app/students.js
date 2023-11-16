@@ -1,6 +1,6 @@
 const { Pool } = require('pg');
 
-const [execPath, file, cohort, maxResults] = process.argv;
+const [execPath, file, cohortName, maxResults] = process.argv;
 
 const pool = new Pool({
   user: 'vagrant',
@@ -9,13 +9,16 @@ const pool = new Pool({
   database: 'bootcampx'
 });
 
-pool.query(`
+const queryString = `
   SELECT students.id as id, students.name as name, cohorts.name as cohort
   FROM students
   JOIN cohorts ON cohort_id = cohorts.id
-  WHERE cohorts.name LIKE '%${cohort}%'
-  LIMIT ${maxResults || 5};
-`)
+  WHERE cohorts.name LIKE $1
+  LIMIT $2;
+`;
+const values = [`%${cohortName}%`, maxResults];
+
+pool.query(queryString, values)
 .then(res => {
   console.log(res.rows);
 })
